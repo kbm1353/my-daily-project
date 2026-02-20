@@ -1,5 +1,12 @@
 import "./App.css";
-import { useState, useRef, useReducer, useCallback } from "react";
+import {
+  useState,
+  useRef,
+  useReducer,
+  useCallback,
+  createContext,
+  useMemo,
+} from "react";
 import Header from "./components/Header";
 import Editor from "./components/Editor";
 import List from "./components/List";
@@ -25,6 +32,10 @@ const mockData = [
     date: new Date().getTime(),
   },
 ];
+
+// App.jsx が再レンダリングされるたびに生成されるのを防ぐために、外側で宣言する
+export const TodoStateContext = createContext();
+export const TodoDispathContext = createContext();
 
 // reducer: 実際に状態をどのように変更するかを定義した関数。dispatch が呼び出されると、React がこの関数を実行する。
 function reducer(state, action) {
@@ -112,11 +123,19 @@ function App() {
     });
   }, []);
 
+  const memoizedDispatch = useMemo(() => {
+    return { onCreate, onUpdate, onDelete };
+  }, []);
+
   return (
     <div className="App">
       <Header />
-      <Editor onCreate={onCreate} />
-      <List todos={todos} onUpdate={onUpdate} onDelete={onDelete} />
+      <TodoStateContext.Provider value={todos}>
+        <TodoDispathContext.Provider value={memoizedDispatch}>
+          <Editor />
+          <List />
+        </TodoDispathContext.Provider>
+      </TodoStateContext.Provider>
     </div>
   );
 }

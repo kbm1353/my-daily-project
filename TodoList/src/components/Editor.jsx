@@ -1,7 +1,9 @@
 import "./Editor.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useContext } from "react";
+import { TodoDispathContext } from "../App";
 
-const Editor = ({ onCreate }) => {
+const Editor = () => {
+  const { onCreate } = useContext(TodoDispathContext);
   const [content, setContent] = useState("");
   const contentRef = useRef(); // ブラウザの機能を直接操作する必要があるため、refを使用（フォーカス）
 
