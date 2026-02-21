@@ -1,16 +1,29 @@
-# React + Vite
+Todo List App (Optimization & Global State)
+プロジェクトの目的
+useReducer を活用した複雑な状態管理ロジックの分離・集約
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Context API によるプロパティ・ドリリング(Prop Drilling)の解消
 
-Currently, two official plugins are available:
+useMemo と useCallback を組み合わせたレンダリングパフォーマンスの極大化
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+技術的ポイント
+Context の分割設計 (State & Dispatch):
+TodoStateContext（データ）と TodoDispatchContext（関数）を分離。データが更新されても、関数のみを参照するコンポーネント（Editorなど）の不要な再レンダリングを完全に防止。
 
-## React Compiler
+useReducer による宣言的UIの実装:
+状態遷移（追加・修正・削除）を reducer 関数に一括管理させ、App コンポーネントをクリーンに保ちつつ、デバッグのしやすい構造を構築。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Memoization (メモ化) の徹底:
+useMemo で Dispatch オブジェクトをキャッシュし、useCallback で関数を永続化。さらに子コンポーネントを React.memo で保護することで、React の最適化ベストプラクティスを実装。
 
-## Expanding the ESLint configuration
+使用技術
+React / Vite
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+useReducer, createContext (Context API)
+
+useCallback, useMemo, React.memo
+
+今後の改善点
+localStorage を利用したデータの永続化
+
+React Context の代わりに Zustand や Recoil などの状態管理ライブラリとの比較検討
