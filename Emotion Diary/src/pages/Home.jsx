@@ -4,6 +4,7 @@ import { DiaryStateContext } from "../App";
 import Header from "../components/Header";
 import Button from "../components/Button";
 import DiaryList from "../components/DIaryList";
+import usePageTitle from "../hooks/usePageTitle";
 
 // 日付と日記データをもとに、今月分の日記のみをフィルタリングして返す関数
 const getMonthlyData = (pivotDate, data) => {
@@ -32,6 +33,7 @@ const getMonthlyData = (pivotDate, data) => {
 const Home = () => {
   const data = useContext(DiaryStateContext);
   const [pivotDate, setPivotDate] = useState(new Date()); // 日付を管理するステート
+  usePageTitle("感情日記");
 
   const monthlyData = getMonthlyData(pivotDate, data);
 
