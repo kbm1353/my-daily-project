@@ -8,21 +8,6 @@ import Diary from "./pages/Diary";
 import Edit from "./pages/Edit";
 import Notfound from "./pages/Notfound";
 
-const mockData = [
-  {
-    id: 1,
-    createdDate: new Date().getTime(),
-    emotionId: 1,
-    content: "123",
-  },
-  {
-    id: 2,
-    createdDate: new Date().getTime(),
-    emotionId: 2,
-    content: "456",
-  },
-];
-
 // 1. "/" : すべての日記を閲覧するHomeページ
 // 2. "/new" : 新しい日記を作成するNewページ
 // 3. "/diary" : 日記を詳細に閲覧するDiaryページ
@@ -66,7 +51,7 @@ export const DiaryDispatchContext = createContext();
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [data, dispatch] = useReducer(reducer, mockData);
+  const [data, dispatch] = useReducer(reducer, []);
   const idRef = useRef(3);
 
   useEffect(() => {

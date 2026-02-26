@@ -1,16 +1,48 @@
-# React + Vite
+Emotion Diary (感情日記)
+Context API と useReducer を活用した感情記録アプリ
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+プロジェクトの目的
 
-Currently, two official plugins are available:
+- 状態管理の効率化: useReducer を用いて複雑な日記データの更新ロジックを分離。
+- Prop Drilling の解消: Context API を導入し、コンポーネント間でのデータ受け渡しを最適化。
+- レンダリングの最適化: useMemo や useCallback による不要な再描画の防止。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+主な機能
 
-## React Compiler
+- 日記の作成・修正・削除: 5段階の感情アイコンとともに日々の出来事を記録。
+- 日付別フィルタリング: 月ごとの日記を一覧表示し、管理。
+- パフォーマンス設計: データの更新が特定のコンポーネントにのみ影響するよう設計。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+技術スタック
+Frontend: React (Vite)
+State Management: useReducer, Context API
+Router: react-router-dom
+Optimization: useCallback, useMemo, React.memo
 
-## Expanding the ESLint configuration
+技術的ポイント
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Context の分割: データ用(State)と関数用(Dispatch)の Context を分離し、パフォーマンスを向上。
+
+メモ化の徹底: 関数やオブジェクトをキャッシュし、アプリ全体の動作を軽量化。
+
+苦労した点
+
+1. 日付データのフォーマット処理
+   Reactの input type="date" は文字列（YYYY-MM-DD）しか受け付けないため、JavaScriptの Date オブジェクトを適切な形式に変換したり、逆に文字列を Date オブジェクトに戻したりする処理に苦労しました。特に、初期データの読み込み時に日付が正しく反映されない問題がありました。
+
+2. 感情アイコン選択時の状態管理
+   5つの感情アイコンの中から一つを選択した際、どのアイコンが選択されたかをリアルタイムで検知し、input 状態（State）に反映させるロジックの構築に苦戦しました。アイコンをクリックした時に、他の入力項目を維持しつつ emotionId だけを正確に更新する処理が難しかったです。
+
+3. 不要な再描画によるパフォーマンス低下
+   一つのコンポーネントを更新した際に、本来更新が必要ない他のコンポーネントまで連鎖的に再描画されてしまい、アプリ全体の動作が重くなる問題が発生しました。
+
+学んだ点
+
+1. ユーティリティ関数によるデータ変換
+   日付の変換処理を共通のユーティリティ関数（getStringedDate など）として分離することで、コードの再利用性を高める方法を学びました。これにより、UI（表示）とデータ（内部処理）を分けて考える重要性を理解しました。
+
+2. オブジェクト型 State の動的な更新
+   setInput({ ...input, [name]: value }) のようなスプレッド演算子を活用し、特定のキーだけを動的に更新する「不変性の維持」について深く学びました。これにより、複雑な入力フォームの状態管理がスムーズになりました。
+
+3. メモ化によるレンダリングの最適化
+   React.memo や useCallback を適切に使い分け、不要な再描画を最小限に抑える方法を学びました。特に、感情アイテムのような繰り返されるコンポーネントの最適化が、全体のパフォーマンスに直結することを体感しました。

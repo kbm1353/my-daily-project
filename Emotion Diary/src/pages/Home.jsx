@@ -3,7 +3,7 @@ import { DiaryStateContext } from "../App";
 
 import Header from "../components/Header";
 import Button from "../components/Button";
-import DiaryList from "../components/DIaryList";
+import DiaryList from "../components/DiaryList";
 import usePageTitle from "../hooks/usePageTitle";
 
 // 日付と日記データをもとに、今月分の日記のみをフィルタリングして返す関数
