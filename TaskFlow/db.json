@@ -1,0 +1,6 @@
+{
+  "tasks": [
+    { "id": 1, "title": "Viteプロジェクト作成", "status": "完了" },
+    { "id": 2, "title": "ログインUI実装", "status": "進行中" }
+  ]
+}
