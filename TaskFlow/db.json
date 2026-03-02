@@ -9,11 +9,6 @@
       "id": "2",
       "title": "ログインUI実装",
       "status": "進行中"
-    },
-    {
-      "id": "bda9",
-      "title": "sss",
-      "status": "進行中"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

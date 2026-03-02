@@ -50,6 +50,37 @@ const Dashboard = () => {
     }
   };
 
+  const deleteTask = async (id: number) => {
+    if (!window.confirm("本当に削除しますか？")) return;
+
+    try {
+      // サーバーで該当IDのデータを削除
+      await axios.delete(`http://localhost:3001/tasks/${id}`);
+      // 自分の画面でも該当IDだけを除いて再度リストを作成
+      setTasks(tasks.filter((task) => task.id !== id));
+    } catch (error) {
+      alert("削除に失敗しました！");
+    }
+  };
+
+  // 状態変更関数（PUT/PATCH）
+  const toggleStatus = async (task: Task) => {
+    const newStatus = task.status === "進行中" ? "完了" : "進行中";
+
+    try {
+      // サーバーのデータを修正（該当IDのstatusのみ変更）
+      await axios.patch(`http://localhost:3001/tasks/${task.id}`, {
+        status: newStatus,
+      });
+      // 画面でも状態を更新
+      setTasks(
+        tasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
+      );
+    } catch (error) {
+      alert("状態変更に失敗しました！");
+    }
+  };
+
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
       <div className="max-w-4xl mx-auto">
@@ -76,33 +107,47 @@ const Dashboard = () => {
         </header>
 
         <div className="grid gap-4">
-          {tasks.length > 0 ? (
-            tasks.map((task) => (
-              <div
-                key={task.id}
-                className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center"
-              >
-                <span className="font-medium text-slate-700">{task.title}</span>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold ${
+          {tasks.map((task) => (
+            <div
+              key={task.id}
+              className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center group transition-all hover:border-blue-300"
+            >
+              <div className="flex items-center gap-3">
+                {/* 状態変更チェックボックスの役割のボタン */}
+                <button
+                  onClick={() => toggleStatus(task)}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
                     task.status === "完了"
-                      ? "bg-green-100 text-green-600"
-                      : "bg-yellow-100 text-yellow-600"
+                      ? "bg-green-500 border-green-500 text-white"
+                      : "border-slate-300 hover:border-blue-500"
                   }`}
                 >
-                  {task.status}
+                  {task.status === "完了" && "✓"}
+                </button>
+
+                <span
+                  className={`font-medium transition-all ${
+                    task.status === "完了"
+                      ? "text-slate-400 line-through"
+                      : "text-slate-700"
+                  }`}
+                >
+                  {task.title}
                 </span>
               </div>
-            ))
-          ) : (
-            <p className="text-center py-10 text-slate-500">
-              データを読み込み中...
-            </p>
-          )}
+
+              {/* 削除ボタン - 普段は透明で、マウスを乗せると(group-hover)表示 */}
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2"
+              >
+                削除
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 };
-
 export default Dashboard;
