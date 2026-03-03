@@ -12,6 +12,22 @@ const Dashboard = () => {
   // サーバーから受け取ったデータを保存するための領域（初期値は空の配列 []）
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState(""); // 入力欄に入力した文字の保存
+  const [searchTerm, setSearchTerm] = useState(""); // 検索ワードを保存
+  const [filterStatus, setFilterStatus] = useState("全て"); // // フィルター状態（全て/進行中/完了）
+
+  // データフィルタリングロジック（タイプミスおよびロジック修正）
+  const filteredTasks = tasks.filter((task) => {
+    // 1. 検索ワードのチェック: タスクのタイトルに検索ワードが含まれているか？
+    const matchesSearch = task.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    // 2. ステータスのチェック: 現在のフィルターが「全て」か、タスクのステータスとフィルターが一致するか？
+    const matchesStatus =
+      filterStatus === "全て" || task.status === filterStatus;
+
+    return matchesSearch && matchesStatus; // // 両方とも一致する場合のみ画面に表示
+  });
 
   // 初回レンダリング時に実行される関数
   useEffect(() => {
@@ -28,6 +44,7 @@ const Dashboard = () => {
     fetchTasks();
   }, []);
 
+  // タスク追加
   const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -50,6 +67,7 @@ const Dashboard = () => {
     }
   };
 
+  // タスク削除
   const deleteTask = async (id: number) => {
     if (!window.confirm("本当に削除しますか？")) return;
 
@@ -82,69 +100,118 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
-      <div className="max-w-4xl mx-auto">
-        <header className="flex justify-between items-center mb-8">
-          <form onSubmit={addTask} className="mb-8 flex gap-2">
+    <div className="bg-slate-50 min-h-screen p-4 md:p-10 font-sans text-slate-800">
+      <div className="max-w-4xl mx-auto w-full flex flex-col gap-10">
+        {/* 1. ヘッダー */}
+        <header className="flex justify-between items-center w-full">
+          <h1 className="text-3xl font-black text-blue-600 tracking-tighter">
+            TaskFlow
+          </h1>
+          <button className="text-slate-400 hover:text-slate-600 font-medium text-sm">
+            Logout
+          </button>
+        </header>
+
+        {/* 2. 上部コントロールエリア（登録 + 検索／フィルター） */}
+        <div className="flex flex-col gap-6 w-full">
+          {/* タスク追加フォーム */}
+          <form onSubmit={addTask} className="flex gap-3 w-full">
             <input
               type="text"
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
               placeholder="新しいタスクを入力してください"
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+              className="flex-1 px-5 py-4 text-lg rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm transition-all"
             />
             <button
               type="submit"
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md active:scale-95"
+              className="bg-blue-600 text-white px-8 py-4 text-lg font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-md active:scale-95 whitespace-nowrap shrink-0"
             >
               追加
             </button>
           </form>
-          <h1 className="text-2xl font-bold text-slate-800">タスクリスト</h1>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-            + タスク追加
-          </button>
-        </header>
 
-        <div className="grid gap-4">
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center group transition-all hover:border-blue-300"
-            >
-              <div className="flex items-center gap-3">
-                {/* 状態変更チェックボックスの役割のボタン */}
-                <button
-                  onClick={() => toggleStatus(task)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                    task.status === "完了"
-                      ? "bg-green-500 border-green-500 text-white"
-                      : "border-slate-300 hover:border-blue-500"
-                  }`}
-                >
-                  {task.status === "完了" && "✓"}
-                </button>
-
-                <span
-                  className={`font-medium transition-all ${
-                    task.status === "完了"
-                      ? "text-slate-400 line-through"
-                      : "text-slate-700"
-                  }`}
-                >
-                  {task.title}
-                </span>
-              </div>
-
-              {/* 削除ボタン - 普段は透明で、マウスを乗せると(group-hover)表示 */}
-              <button
-                onClick={() => deleteTask(task.id)}
-                className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2"
-              >
-                削除
-              </button>
+          {/* 検索 & フィルターバー */}
+          <div className="flex flex-row items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-100 w-full">
+            {/* 検索バー */}
+            <div className="flex-1 w-full relative">
+              <input
+                type="text"
+                placeholder="タスク名で検索..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-5 py-3 text-base rounded-xl border border-slate-100 bg-slate-50 focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+              />
             </div>
-          ))}
+
+            {/* フィルターボタン */}
+            <div className="flex bg-slate-100 p-1.5 rounded-xl shrink-0 gap-1">
+              {["全て", "進行中", "完了"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                    filterStatus === status
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 3. タスクリストエリア */}
+        <div className="flex flex-col gap-4 w-full">
+          {/* リストタイトル */}
+          <div className="flex justify-between items-end w-full px-2">
+            <h2 className="text-2xl font-bold text-slate-800">Task List</h2>
+            <span className="text-sm text-slate-400 font-medium">
+              合計: {filteredTasks.length}件
+            </span>
+          </div>
+
+          {/* リスト一覧表示 */}
+          <div className="flex flex-col gap-3 w-full">
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center group hover:border-blue-200 transition-all w-full"
+                >
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => toggleStatus(task)}
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+                        task.status === "完了"
+                          ? "bg-green-500 border-green-500 text-white"
+                          : "border-slate-200 bg-white"
+                      }`}
+                    >
+                      {task.status === "完了" && "✓"}
+                    </button>
+                    <span
+                      className={`font-semibold text-lg ${task.status === "完了" ? "text-slate-300 line-through" : "text-slate-700"}`}
+                    >
+                      {task.title}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-50 rounded-xl"
+                  >
+                    削除
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100 text-slate-400 w-full">
+                該当するタスクがありません。
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
