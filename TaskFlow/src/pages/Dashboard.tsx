@@ -13,7 +13,37 @@ const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState(""); // 入力欄に入力した文字の保存
   const [searchTerm, setSearchTerm] = useState(""); // 検索ワードを保存
-  const [filterStatus, setFilterStatus] = useState("全て"); // // フィルター状態（全て/進行中/完了）
+  const [filterStatus, setFilterStatus] = useState("全て"); // フィルター状態（全て/進行中/完了）
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+
+  // 編集モードに入る
+  const startEdit = (task: Task) => {
+    setEditingId(task.id);
+    setEditTitle(task.title);
+  };
+
+  // 編集キャンセル
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditTitle("");
+  };
+
+  // 編集保存（PATCH）
+  const saveEdit = async (id: number) => {
+    if (!editTitle.trim()) return;
+    try {
+      await axios.patch(`http://localhost:3001/tasks/${id}`, {
+        title: editTitle,
+      });
+      setTasks(
+        tasks.map((t) => (t.id === id ? { ...t, title: editTitle } : t)),
+      );
+      setEditingId(null);
+    } catch (error) {
+      alert("修正に失敗しました。");
+    }
+  };
 
   // データフィルタリングロジック（タイプミスおよびロジック修正）
   const filteredTasks = tasks.filter((task) => {
@@ -107,12 +137,18 @@ const Dashboard = () => {
           <h1 className="text-3xl font-black text-blue-600 tracking-tighter">
             TaskFlow
           </h1>
-          <button className="text-slate-400 hover:text-slate-600 font-medium text-sm">
+          <button
+            onClick={() => {
+              if (window.confirm("ログアウトしますか？"))
+                alert("ログアウトしました");
+            }}
+            className="text-slate-400 hover:text-red-500 font-medium text-sm transition-colors"
+          >
             Logout
           </button>
         </header>
 
-        {/* 2. 上部コントロールエリア（登録 + 検索／フィルター） */}
+        {/* 2. コントロールエリア */}
         <div className="flex flex-col gap-6 w-full">
           {/* タスク追加フォーム */}
           <form onSubmit={addTask} className="flex gap-3 w-full">
@@ -133,7 +169,6 @@ const Dashboard = () => {
 
           {/* 検索 & フィルターバー */}
           <div className="flex flex-row items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-100 w-full">
-            {/* 検索バー */}
             <div className="flex-1 w-full relative">
               <input
                 type="text"
@@ -144,7 +179,6 @@ const Dashboard = () => {
               />
             </div>
 
-            {/* フィルターボタン */}
             <div className="flex bg-slate-100 p-1.5 rounded-xl shrink-0 gap-1">
               {["全て", "進行中", "完了"].map((status) => (
                 <button
@@ -165,7 +199,6 @@ const Dashboard = () => {
 
         {/* 3. タスクリストエリア */}
         <div className="flex flex-col gap-4 w-full">
-          {/* リストタイトル */}
           <div className="flex justify-between items-end w-full px-2">
             <h2 className="text-2xl font-bold text-slate-800">Task List</h2>
             <span className="text-sm text-slate-400 font-medium">
@@ -173,7 +206,6 @@ const Dashboard = () => {
             </span>
           </div>
 
-          {/* リスト一覧表示 */}
           <div className="flex flex-col gap-3 w-full">
             {filteredTasks.length > 0 ? (
               filteredTasks.map((task) => (
@@ -181,10 +213,11 @@ const Dashboard = () => {
                   key={task.id}
                   className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center group hover:border-blue-200 transition-all w-full"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
+                    {/* ステータス切替ボタン */}
                     <button
                       onClick={() => toggleStatus(task)}
-                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                         task.status === "完了"
                           ? "bg-green-500 border-green-500 text-white"
                           : "border-slate-200 bg-white"
@@ -192,18 +225,63 @@ const Dashboard = () => {
                     >
                       {task.status === "完了" && "✓"}
                     </button>
-                    <span
-                      className={`font-semibold text-lg ${task.status === "完了" ? "text-slate-300 line-through" : "text-slate-700"}`}
-                    >
-                      {task.title}
-                    </span>
+
+                    {/* 編集モードかどうかの条件分岐 */}
+                    {editingId === task.id ? (
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="flex-1 px-3 py-1 border-b-2 border-blue-500 outline-none bg-blue-50/50 font-semibold text-lg"
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        className={`font-semibold text-lg transition-all ${
+                          task.status === "完了"
+                            ? "text-slate-300 line-through"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        {task.title}
+                      </span>
+                    )}
                   </div>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-50 rounded-xl"
-                  >
-                    削除
-                  </button>
+
+                  {/* 右側のボタンエリア */}
+                  <div className="flex items-center gap-2 ml-4">
+                    {editingId === task.id ? (
+                      <>
+                        <button
+                          onClick={() => saveEdit(task.id)}
+                          className="text-blue-600 font-bold text-sm hover:bg-blue-50 px-3 py-2 rounded-xl transition-colors"
+                        >
+                          保存
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="text-slate-400 font-bold text-sm hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors"
+                        >
+                          キャンセル
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => startEdit(task)}
+                          className="text-slate-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-blue-50 rounded-xl text-sm font-bold"
+                        >
+                          編集
+                        </button>
+                        <button
+                          onClick={() => deleteTask(task.id)}
+                          className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-2 hover:bg-red-50 rounded-xl text-sm font-bold"
+                        >
+                          削除
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (
