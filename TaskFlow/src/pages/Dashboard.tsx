@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import TaskForm from "../components/TaskForm";
 import TaskFilter from "../components/TaskFilter";
 import TaskItem from "../components/TaskItem";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -139,26 +140,46 @@ const Dashboard = () => {
           </div>
 
           <div className="flex flex-col gap-3 w-full">
-            {filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => (
-                <TaskItem
-                  key={task.id}
-                  task={task}
-                  isEditing={editingId === task.id}
-                  editTitle={editTitle}
-                  setEditTitle={setEditTitle}
-                  onToggle={toggleStatus}
-                  onStartEdit={startEdit}
-                  onCancelEdit={cancelEdit}
-                  onSave={saveEdit}
-                  onDelete={deleteTask}
-                />
-              ))
-            ) : (
-              <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100 text-slate-400 w-full">
-                該当するタスクがありません。
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {filteredTasks.length > 0 ? (
+                filteredTasks.map((task) => (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{
+                      opacity: 0,
+                      x: -100,
+                      transition: { duration: 0.2 },
+                    }}
+                    transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                    layout
+                    className="w-full"
+                  >
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      isEditing={editingId === task.id}
+                      editTitle={editTitle}
+                      setEditTitle={setEditTitle}
+                      onToggle={toggleStatus}
+                      onStartEdit={startEdit}
+                      onCancelEdit={cancelEdit}
+                      onSave={saveEdit}
+                      onDelete={deleteTask}
+                    />
+                  </motion.div>
+                ))
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-100 text-slate-400 w-full"
+                >
+                  該当するタスクがありません。
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
