@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import type { Task } from "../types";
 import Header from "../components/Header";
 import TaskForm from "../components/TaskForm";
