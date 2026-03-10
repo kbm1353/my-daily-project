@@ -1,73 +1,59 @@
-# React + TypeScript + Vite
+TaskFlow (タスク管理アプリ)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Framer MotionとTailwind CSSを活用した高性能タスク管理アプリケーション
 
-Currently, two official plugins are available:
+<プロジェクトの目的>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ユーザー体験(UX)の最大化：Framer Motionを導入し、滑らかなアニメーションを実装してアプリに生動感を与える。
 
-## React Compiler
+- データ永続性の維持：バックエンドを用いず、LocalStorageを活用してブラウザ終了後もデータが保持されるよう設計。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<主な機能>
 
-## Expanding the ESLint configuration
+- タスクCRUD：タスクの追加、編集、削除および進行状況（進行中/完了）の切り替え機能。
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- リアルタイムフィルタリング：タイトル検索や完了状態（全て/進行中/完了）による状態別フィルタリング。
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- ダイナミックUI：状態変化に応じたリアルタイムUI反映。
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- 滑らかなインタラクション：リスト項目の追加・削除時にリストレイアウトが自然に再配置されるアニメーション。
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+<技術スタック>
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+フロントエンド：React (Vite)、TypeScript
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+スタイリング：Tailwind CSS
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+アニメーション：Framer Motion
+
+デプロイ：Vercel
+
+<技術的ポイント>
+
+- 宣言的アニメーション：AnimatePresenceとmotion.divを活用し、Reactライフサイクルに沿った宣言的アニメーションを実装。
+
+- 型安全性：TypeScriptのimport typeを活用してランタイムオーバーヘッドなしで型安全性を確保。
+
+- 効率性：useEffectを利用したデータ自動同期（State ↔ LocalStorage）のロジック構築。
+
+<苦労した点>
+
+デプロイ環境でのデータ通信問題
+
+問題：ローカルではaxiosとjson-serverを使用して開発していたが、Vercelデプロイ時は静的ホスティング環境のためバックエンドサーバーが動作せず。
+
+解決：データ管理をAPI通信からLocalStorageベースのクライアントサイド保存に全面的に変更し、サーバーなしで動作する完全なウェブアプリを実現。
+
+ビルドエラー (Exit Code 2) 対応
+
+問題：開発環境では正常だが、デプロイビルド時に厳密な型チェックや未使用変数ルールでビルド失敗。
+
+解決：package.jsonのビルドスクリプト最適化、errorの削減、import type明示によりビルド安定性を確保。
+
+<学んだこと>
+
+- ライブラリ選択とカスタマイズ：Framer Motionのlayout属性を用い、複雑な座標計算なしで滑らかなリスト再配置機能を実装し、ライブラリ活用能力を向上。
+
+- デプロイ環境の理解：ローカル環境と実際のデプロイ環境（Vercel）の差を理解し、それに応じたデータ保存戦略（LocalStorage）を構築する経験を得た。
+
+- 細やかなUI/UX設計：ダークモードとアニメーションが単なる美的要素ではなく、ユーザーがアプリの状態変化を認識する上で大きな助けになることを体感。
