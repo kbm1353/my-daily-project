@@ -9,27 +9,21 @@ import TaskItem from "../components/TaskItem";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Dashboard = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const savedTasks = localStorage.getItem("taskflow-data");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
   const [newTask, setNewTask] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("全て");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
 
-  const navigate = useNavigate();
-
-  // サーバーデータの初期読み込み
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await axios.get("http://localhost:3001/tasks");
-        setTasks(response.data);
-      } catch (error) {
-        console.error("データを取得できませんでした:", error);
-      }
-    };
-    fetchTasks();
-  }, []);
+    localStorage.setItem("taskflow-data", JSON.stringify(tasks));
+  }, [tasks]);
+
+  const navigate = useNavigate();
 
   // ログアウト
   const handleLogout = () => {
@@ -42,31 +36,22 @@ const Dashboard = () => {
   const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.trim()) return;
-    try {
-      const response = await axios.post("http://localhost:3001/tasks", {
-        title: newTask,
-        status: "進行中",
-      });
-      setTasks([...tasks, response.data]);
-      setNewTask("");
-    } catch (error) {
-      alert("登録に失敗しました！");
-    }
+
+    const newTaskObj: Task = {
+      id: Date.now(),
+      title: newTask,
+      status: "進行中",
+    };
+    setTasks([...tasks, newTaskObj]);
+    setNewTask("");
   };
 
   // ステータス変更（進行中 <-> 完了）
-  const toggleStatus = async (task: Task) => {
+  const toggleStatus = (task: Task) => {
     const newStatus = task.status === "進行中" ? "完了" : "進行中";
-    try {
-      await axios.patch(`http://localhost:3001/tasks/${task.id}`, {
-        status: newStatus,
-      });
-      setTasks(
-        tasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-      );
-    } catch (error) {
-      alert("状態変更に失敗しました！");
-    }
+    setTasks(
+      tasks.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
+    );
   };
 
   // 編集モード操作
@@ -82,28 +67,14 @@ const Dashboard = () => {
 
   const saveEdit = async (id: number) => {
     if (!editTitle.trim()) return;
-    try {
-      await axios.patch(`http://localhost:3001/tasks/${id}`, {
-        title: editTitle,
-      });
-      setTasks(
-        tasks.map((t) => (t.id === id ? { ...t, title: editTitle } : t)),
-      );
-      setEditingId(null);
-    } catch (error) {
-      alert("修正に失敗しました。");
-    }
+    setTasks(tasks.map((t) => (t.id === id ? { ...t, title: editTitle } : t)));
+    setEditingId(null);
   };
 
   // タスク削除
-  const deleteTask = async (id: number) => {
+  const deleteTask = (id: number) => {
     if (!window.confirm("本当に削除しますか？")) return;
-    try {
-      await axios.delete(`http://localhost:3001/tasks/${id}`);
-      setTasks(tasks.filter((task) => task.id !== id));
-    } catch (error) {
-      alert("削除に失敗しました！");
-    }
+    setTasks(tasks.filter((task) => task.id !== id));
   };
 
   // フィルタリングロジック
